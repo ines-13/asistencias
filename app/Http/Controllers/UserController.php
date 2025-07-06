@@ -2,83 +2,79 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\User;
 use Illuminate\Http\Request;
+use App\Models\User;
+use Illuminate\Support\Facades\Hash;
 
 class UserController extends Controller
 {
-    // Ver todos los usuarios
     public function index()
     {
-        return response()->json(User::all());
+        return User::all();
     }
 
-    // Crear nuevo usuario con email y contraseña automáticos
     public function store(Request $request)
     {
-        // Validación simple
         $request->validate([
             'name' => 'required|string|max:255',
-            'ap_usuario' => 'nullable|string|max:255',
-            'am_usuario' => 'nullable|string|max:255',
-            'tel_cel_usuario' => 'nullable|string|max:20',
-            'tel_emergencia' => 'nullable|string|max:20',
-            'rfc' => 'nullable|string|max:13',
-            'rol' => 'required|string|max:50',
-            'notas_medicas' => 'nullable|string',
+            'email' => 'required|string|email|max:255|unique:users',
+            'password' => 'required|string|min:6',
         ]);
 
-        // Crear un email automático único
-        $email = strtolower(str_replace(' ', '', $request->name)) . uniqid() . '@cliente.com';
-
-        // Crear el usuario
-        $user = User::create([
-            'name' => $request->name,
-            'email' => $email,
-            'password' => bcrypt('default123'), // Contraseña por defecto
-            'ap_usuario' => $request->ap_usuario,
-            'am_usuario' => $request->am_usuario,
-            'tel_cel_usuario' => $request->tel_cel_usuario,
-            'tel_emergencia' => $request->tel_emergencia,
-            'rfc' => $request->rfc,
-            'rol' => $request->rol,
-            'notas_medicas' => $request->notas_medicas,
-        ]);
+        $user = new User();
+        $user->name = $request->name;
+        $user->email = $request->email;
+        $user->password = Hash::make($request->password);
+        $user->ap_usuario = $request->ap_usuario;
+        $user->am_usuario = $request->am_usuario;
+        $user->tel_cel_usuario = $request->tel_cel_usuario;
+        $user->tel_emergencia = $request->tel_emergencia;
+        $user->notas_medicas = $request->notas_medicas;
+        $user->rfc = $request->rfc;
+        $user->rol = $request->rol;
+        $user->membresia_id = $request->membresia_id;
+        $user->save();
 
         return response()->json($user, 201);
     }
 
-    // Ver un solo usuario
     public function show($id)
     {
-        $user = User::find($id);
-        if (!$user) {
-            return response()->json(['error' => 'Usuario no encontrado'], 404);
-        }
-        return response()->json($user);
+        return User::findOrFail($id);
     }
 
-    // Actualizar usuario
     public function update(Request $request, $id)
     {
-        $user = User::find($id);
-        if (!$user) {
-            return response()->json(['error' => 'Usuario no encontrado'], 404);
+        $user = User::findOrFail($id);
+        $user->name = $request->name;
+        $user->email = $request->email;
+        if ($request->filled('password')) {
+            $user->password = Hash::make($request->password);
         }
+        $user->ap_usuario = $request->ap_usuario;
+        $user->am_usuario = $request->am_usuario;
+        $user->tel_cel_usuario = $request->tel_cel_usuario;
+        $user->tel_emergencia = $request->tel_emergencia;
+        $user->notas_medicas = $request->notas_medicas;
+        $user->rfc = $request->rfc;
+        $user->rol = $request->rol;
+        $user->membresia_id = $request->membresia_id;
+        $user->save();
 
-        $user->update($request->all());
         return response()->json($user);
     }
 
-    // Eliminar usuario
     public function destroy($id)
     {
-        $user = User::find($id);
-        if (!$user) {
-            return response()->json(['error' => 'Usuario no encontrado'], 404);
-        }
-
+        $user = User::findOrFail($id);
         $user->delete();
-        return response()->json(['message' => 'Usuario eliminado']);
+        return response()->json(['mensaje' => 'Usuario eliminado correctamente']);
+    }
+
+    // ✅ NUEVA FUNCIÓN PARA OBTENER PROFESORES
+    public function obtenerProfesores()
+    {
+        $profesores = User::where('rol', 'profesor')->get(['id', 'name']);
+        return response()->json($profesores);
     }
 }

@@ -22,5 +22,10 @@ class Membresia extends Model
 {
     return $this->belongsTo(User::class);
 }
+public function usuarios()
+{
+    return $this->hasMany(User::class, 'membresia_id', 'id_membresia');
+}
+
 }
 

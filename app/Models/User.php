@@ -28,7 +28,8 @@ class User extends Authenticatable
         'tel_emergencia',
         'rfc',
         'rol',
-        'notas_medicas'
+        'notas_medicas',
+        'membresia_id',
     ];
 
     /**
@@ -53,5 +54,9 @@ class User extends Authenticatable
             'password' => 'hashed',
         ];
     }
-    
+    public function membresia()
+{
+    return $this->belongsTo(Membresia::class, 'membresia_id', 'id_membresia');
+}
+
 }
