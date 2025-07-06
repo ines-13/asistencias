@@ -29,7 +29,7 @@ RUN chown -R www-data:www-data /var/www/html \
 # Instalar dependencias de Laravel
 RUN composer install --no-dev --optimize-autoloader
 
-# Cambiar DocumentRoot de Apache para que apunte a /var/www/html/public
+# Cambiar DocumentRoot de Apache a /var/www/html/public
 RUN sed -i 's|DocumentRoot /var/www/html|DocumentRoot /var/www/html/public|g' /etc/apache2/sites-available/000-default.conf
 
 # Exponer el puerto 80
@@ -37,3 +37,11 @@ EXPOSE 80
 
 # Iniciar Apache
 CMD ["apache2-foreground"]
+
+# Habilitar index.php y permitir acceso al directorio public/
+RUN echo '<Directory /var/www/html/public>\n\
+    Options Indexes FollowSymLinks\n\
+    AllowOverride All\n\
+    Require all granted\n\
+</Directory>' > /etc/apache2/conf-available/laravel.conf \
+&& a2enconf laravel
