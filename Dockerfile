@@ -1,6 +1,6 @@
 FROM php:8.2-apache
 
-# Instala dependencias del sistema
+# Instalar extensiones necesarias
 RUN apt-get update && apt-get install -y \
     git \
     unzip \
@@ -10,27 +10,30 @@ RUN apt-get update && apt-get install -y \
     curl \
     && docker-php-ext-install pdo pdo_pgsql zip
 
-# Habilita mod_rewrite de Apache
+# Habilitar mod_rewrite de Apache
 RUN a2enmod rewrite
 
-# Copia los archivos del proyecto al contenedor
-COPY . /var/www/html/
+# Establecer el directorio de trabajo
+WORKDIR /var/www/html
 
-# Establece permisos
+# Copiar el composer desde una imagen oficial
+COPY --from=composer:2 /usr/bin/composer /usr/bin/composer
+
+# Copiar todos los archivos del proyecto
+COPY . /var/www/html
+
+# Dar permisos a Laravel
 RUN chown -R www-data:www-data /var/www/html \
     && chmod -R 755 /var/www/html
 
-# Establece el directorio de trabajo
-WORKDIR /var/www/html
-
-# Instala Composer
-COPY --from=composer:2 /usr/bin/composer /usr/bin/composer
-
-# Instala dependencias de Laravel
+# Instalar dependencias de Laravel
 RUN composer install --no-dev --optimize-autoloader
 
-# Expone el puerto 80
+# Cambiar DocumentRoot de Apache para que apunte a /var/www/html/public
+RUN sed -i 's|DocumentRoot /var/www/html|DocumentRoot /var/www/html/public|g' /etc/apache2/sites-available/000-default.conf
+
+# Exponer el puerto 80
 EXPOSE 80
 
-# Comando final para iniciar Apache
+# Iniciar Apache
 CMD ["apache2-foreground"]
