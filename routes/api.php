@@ -7,6 +7,8 @@ use App\Http\Controllers\UserController;
 use App\Http\Controllers\ClimaController;
 use App\Http\Controllers\ClaseController;
 use App\Http\Controllers\SolicitudClaseController;
+use App\Http\Controllers\EstadisticasController;
+
 
 
 
@@ -52,4 +54,9 @@ Route::get('/solicitudes/instructor/{instructor}', [SolicitudClaseController::cl
 Route::put('/solicitudes/{id}', [SolicitudClaseController::class, 'actualizarEstado']);// para que el profesor acepte o rechace una solicitud
 Route::get('/cliente/{id}/mensajes-rechazo', [SolicitudClaseController::class, 'mensajesRechazo']);
 Route::post('/mensaje-rechazo/{id}/marcar-leido', [SolicitudClaseController::class, 'marcarLeido']);
+});
+
+Route::middleware('auth:sanctum')->prefix('estadisticas')->group(function () {
+    Route::get('/membresias_estado', [EstadisticasController::class, 'membresiasEstado']);
+    Route::get('/clases_por_profesor', [EstadisticasController::class, 'clasesPorProfesor']);
 });
